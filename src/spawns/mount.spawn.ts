@@ -24,6 +24,7 @@ export const spawnExtention = {
     spawn_by_order(this: StructureSpawn) {
         //检查是否可以生成creep
         if (this.spawnCreep([MOVE], 'testCreep', { dryRun: true }) == OK) {
+            this.memory.role = 'idle'
             if (this.room.memory.list_spawn_order.length > 0) {
                 var creepInfo = this.room.memory.list_spawn_order[0]
                 let body = this.generate_body(creepInfo.role)
@@ -37,12 +38,8 @@ export const spawnExtention = {
                 }) == OK) {
                     this.room.memory.list_spawn_order.splice(0, 1)
                     this.memory.role = creepInfo.role
-
                 }
             }
-        }
-        else if (!this.spawning) {
-            this.memory.role = 'idle'
         }
 
     },

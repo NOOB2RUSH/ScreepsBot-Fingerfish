@@ -1,8 +1,15 @@
 
 
-
 interface Memory {
+    /**保存所有作为base的房间 */
+    baseList: baseList
+}
+/**检索：base房间名：所拥有的外矿房间名 */
+interface baseList {
 
+    [baseName: string]: {
+        linkedMineshaft: string[]
+    }
 }
 
 

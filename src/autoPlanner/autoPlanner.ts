@@ -183,7 +183,7 @@ export function auto_place_site(room: Room) {
                 site.type as unknown as BuildableStructureConstant)
         }
         checkRoad(room)
-        checkRampart(room, 13)
+        if (room.controller.level >= 4) { checkRampart(room, 13) }
     }
     else {
         console.log(`自动布局失败，未找到合适的中心位置`);

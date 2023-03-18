@@ -6,6 +6,8 @@ import { memoryUnleasher } from "utils/memoryUnleash";
 import { room_Init } from "rooms/roomInit";
 import { auto_place_site, best_anchor, find_square, generate_room_cost_map, room_cost_map, single_cost } from "autoPlanner/autoPlanner";
 import { roomDefence } from "defenceSystem/defenceMain";
+import { basename } from "path";
+import { memoize } from "lodash";
 
 
 
@@ -13,15 +15,9 @@ import { roomDefence } from "defenceSystem/defenceMain";
 
 //全局重置时加载的代码
 mount_ext()
-
-
-// for (let name in Game.rooms) {
-//   let room = Game.rooms[name]
-//   let terrain = room.getTerrain()
-//   room.memory.city_central = best_anchor(generate_room_cost_map(room), find_square(terrain, 13))
-
-// }
-
+if (!Memory.baseList) {
+  Memory.baseList = null
+}
 
 export const loop = ErrorMapper.wrapLoop(() => {
   //   if(Game.cpu.bucket == 10000) {
@@ -31,9 +27,14 @@ export const loop = ErrorMapper.wrapLoop(() => {
   memoryUnleasher()
 
   //入口
+  /**房间总数 */
+  let roomCnt = 0
+  for (let n in Game.rooms) {
+    roomCnt++
+  }
   for (var n in Game.rooms) {
     let room = Game.rooms[n]
-    room_Init(room)
+    if (roomCnt == 1) { room_Init(room, 'base') }
     room.find_creep()
     room.order_creep()
     let spawns = room.find(FIND_MY_SPAWNS)

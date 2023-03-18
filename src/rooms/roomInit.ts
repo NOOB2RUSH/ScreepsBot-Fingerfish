@@ -1,21 +1,19 @@
-import { creepConfig, MIB_CFG } from "creeps/creepConfiguration"
-
-
+import { basename } from "path"
 
 /**对每个新房间进行初始化*/
-export function room_Init(room: Room): number {
+export function room_Init(room: Room, type: string, linkedBase?: string): number {
 
     if (room.memory.is_inited != true) {
         /*该房间未初始化：
         1、分配房间类型：基地/外矿/行军通道等
         2、储存房间内所有资源（source、矿）（暂时只储存source）
-        3、若房间为respawn后第一个房间，则初始化Memory内容
+        3、初始化Memory内容
         */
         room.memory.is_inited = true
         //分配房间类型，暂时只分配base
-        room.memory.room_type = "base"
+        room.memory.room_type = type
         room.memory.list_construction = []
-        if (room.memory.room_type == "base") {
+        if (room.memory.room_type == type) {
             //寻找所有source，检查可用采集点
             console.log('正在寻找采集点')
             room.memory.list_source = new Array<SourceInfo>()
@@ -103,6 +101,22 @@ export function room_Init(room: Room): number {
         room.memory.list_spawn_order = []
         room.memory.list_container_avail = []
         room.memory.list_energy_receiver = []
+
+
+        switch (type) {
+            case 'base':
+                Memory.baseList[room.name] = {
+                    linkedMineshaft: []
+                }
+                break
+            case 'mineshaft':
+                let tempArr = Memory.baseList[linkedBase].linkedMineshaft
+                tempArr.push(room.name)
+                Memory.baseList[linkedBase] = {
+                    linkedMineshaft: tempArr
+                }
+
+        }
     }
     return 0
 }
