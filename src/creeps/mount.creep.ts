@@ -1,6 +1,5 @@
 /**所有对creep做的原型拓展 */
 import { RETURNING, ROLE_CARRIER, WITHDRAW, WORKING } from "creeps/creepConfiguration"
-import { CreateOptions } from "mocha/lib/interfaces/common"
 
 
 /**写入扩展的creep方法 */
@@ -30,7 +29,7 @@ export const creepExtention = {
         }
         if (this.withdraw(target, RESOURCE_ENERGY) == ERR_NOT_IN_RANGE) {
 
-            this.moveTo(target.pos.x, target.pos.y,
+            this.moveTo(target,
                 {
                     reusePath: 5, visualizePathStyle: {}
                 })
@@ -46,14 +45,23 @@ export const creepExtention = {
      * @param construction_site 工地id
      *
      */
-    my_build(construction_site: Id<ConstructionSite>) {
+    my_build(this: Creep, construction_site: Id<ConstructionSite>) {
         let target = Game.getObjectById(construction_site)
-        if (this.build(target) == ERR_NOT_IN_RANGE) {
-            this.moveTo(target.pos.x, target.pos.y,
-                {
-                    reusePath: 5, visualizePathStyle: {}
-                })
+        if (target) {
+            if (this.pos.x == 0 || this.pos.x == 49 || this.pos.y == 0 || this.pos.y == 49) {
+                this.moveTo(target.pos,
+                    {
+                        reusePath: 5, visualizePathStyle: {}
+                    })
+            }
+            if (this.build(target) == ERR_NOT_IN_RANGE) {
+                this.moveTo(target.pos,
+                    {
+                        reusePath: 5, visualizePathStyle: {}
+                    })
+            }
         }
+
         //能量用完了就去收集
         else if (this.store[RESOURCE_ENERGY] == 0) {
             this.memory.stats = RETURNING

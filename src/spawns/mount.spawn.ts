@@ -1,6 +1,7 @@
 
-import { creepCfgMap, creepConfig, RETURNING } from "creeps/creepConfiguration"
-import { body_resolve } from "utils/misc"
+import { RETURNING } from "creeps/creepConfiguration"
+import { min } from "lodash"
+
 
 
 /**将creep结构分为三种类型
@@ -13,6 +14,7 @@ const creepBodyModule = {
     upgrader: [1, 2, 1],
     builder: [1, 2, 1],
     repairer: [1, 2, 1],
+    scout: [0, 0, 1]
 }
 
 export function mount_spawn() {
@@ -29,19 +31,38 @@ export const spawnExtention = {
                 var creepInfo = this.room.memory.list_spawn_order[0]
                 let body = this.generate_body(creepInfo.role)
                 let name = creepInfo.role + Game.time
-                if (this.spawnCreep(body, name, {
-                    memory: {
+                let mem = {}
+                /**若为scout */
+                if (creepInfo.role == 'scout') {
+                    body = [MOVE]
+                    mem = {
                         role: 'role_' + creepInfo.role,
-                        stats: RETURNING
-                    },
-                    directions: [TOP_LEFT, TOP, TOP_RIGHT, RIGHT, LEFT]
+                        stats: RETURNING,
+                        scout_target: creepInfo.opts.scoutTarget
+                    }
+                    for (let baseName in Memory.baseList) {
+                        for (let mineshaftName in Memory.baseList[baseName].linkedMineshaft) {
+                            if (Memory.baseList[baseName].linkedMineshaft[mineshaftName].name === creepInfo.opts.scoutTarget) {
+                                Memory.baseList[baseName].linkedMineshaft[mineshaftName].scoutName = name
+                                break
+                            }
+                        }
+                    }
+                }
+                else {
+                    mem = {
+                        role: 'role_' + creepInfo.role,
+                        stats: RETURNING,
+                    }
+                }
+                if (this.spawnCreep(body, name, {
+                    memory: mem as CreepMemory,
                 }) == OK) {
                     this.room.memory.list_spawn_order.splice(0, 1)
                     this.memory.role = creepInfo.role
                 }
             }
         }
-
     },
     /**自动生成当前能量可以生成的最大体型creep */
     generate_body(this: StructureSpawn, role: string) {
@@ -51,6 +72,9 @@ export const spawnExtention = {
         /**储存设定好的身体结构+ */
         let body: BodyPartConstant[] = []
         /**不同职能的creep具备不同的身体比例 */
+        if (!creepBodyModule[role]) {
+            return []
+        }
         let module: number[] = creepBodyModule[role]
         let n = Math.floor(max_cost / (100 * module[0] + 50 * module[1] + 50 * module[2]))
         let max_work_parts = module[0] * n

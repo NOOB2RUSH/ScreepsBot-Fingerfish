@@ -3,19 +3,18 @@ import { basename } from "path"
 /**对每个新房间进行初始化*/
 export function room_Init(room: Room, type: string, linkedBase?: string): number {
 
-    if (room.memory.is_inited != true) {
+    if (!room.memory.is_inited) {
         /*该房间未初始化：
         1、分配房间类型：基地/外矿/行军通道等
         2、储存房间内所有资源（source、矿）（暂时只储存source）
         3、初始化Memory内容
         */
         room.memory.is_inited = true
-        //分配房间类型，暂时只分配base
+        //分配房间类型
         room.memory.room_type = type
         room.memory.list_construction = []
         if (room.memory.room_type == type) {
             //寻找所有source，检查可用采集点
-            console.log('正在寻找采集点')
             room.memory.list_source = new Array<SourceInfo>()
             for (let i in room.find(FIND_SOURCES)) {
                 room.memory.list_source[i] = {
@@ -82,7 +81,6 @@ export function room_Init(room: Room, type: string, linkedBase?: string): number
                         cnt += 1
                     }
                 }
-                console.log('该source共找到可用点位' + cnt + '个')
             }
         }
         let cnt = 0;
@@ -91,7 +89,6 @@ export function room_Init(room: Room, type: string, linkedBase?: string): number
                 cnt += 1
             }
         }
-        console.log('source共找到可用点位' + cnt + '个')
 
 
 
@@ -102,20 +99,15 @@ export function room_Init(room: Room, type: string, linkedBase?: string): number
         room.memory.list_container_avail = []
         room.memory.list_energy_receiver = []
 
-
+        if (!Memory.baseList) {
+            Memory.baseList = {}
+        }
         switch (type) {
             case 'base':
                 Memory.baseList[room.name] = {
                     linkedMineshaft: []
                 }
                 break
-            case 'mineshaft':
-                let tempArr = Memory.baseList[linkedBase].linkedMineshaft
-                tempArr.push(room.name)
-                Memory.baseList[linkedBase] = {
-                    linkedMineshaft: tempArr
-                }
-
         }
     }
     return 0

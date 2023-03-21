@@ -6,6 +6,7 @@ export const ROLE_HARVESTER = 'role_harvester'
 export const ROLE_CARRIER = 'role_carrier'
 export const ROLE_BUILDER = 'role_builder'
 export const ROLE_REPAIRER = 'role_repairer'
+export const ROLE_SCOUT = 'role_scout'
 
 export const WITHDRAW = 'withdraw'
 export const TRANSFER = 'transfer'

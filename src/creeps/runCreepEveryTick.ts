@@ -1,5 +1,5 @@
-import { ROLE_HARVESTER, ROLE_MIB, ROLE_UPGRADER } from "creeps/creepConfiguration";
-import { role_harvester, role_MIB, role_upgrader } from "./roleFunctions"
+import { ROLE_HARVESTER, ROLE_MIB, ROLE_SCOUT, ROLE_UPGRADER } from "creeps/creepConfiguration";
+import { role_harvester, role_MIB, role_scout, role_upgrader } from "./roleFunctions"
 export function runCreepEveryTick() {
     for (let name in Game.creeps) {
         var creep = Game.creeps[name]
@@ -14,6 +14,10 @@ export function runCreepEveryTick() {
             case ROLE_HARVESTER:
                 role_harvester.run(creep)
                 break;
+            case ROLE_SCOUT:
+                role_scout.run(creep)
+                break;
+
         }
 
 

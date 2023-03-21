@@ -199,3 +199,16 @@ export var role_builder = {
 }
 
 
+/**scout
+ * 负责开新房间视野
+ *
+ */
+export var role_scout = {
+    run: function (creep: Creep) {
+        if (creep.memory.scout_target) {
+            // if (!Game.rooms[creep.memory.scout_target] || creep.pos.x == (0 || 49) || creep.pos.y == (0 || 49)) {
+                let tar = new RoomPosition(24, 24, creep.memory.scout_target)
+                creep.moveTo(tar, { visualizePathStyle: {} })
+        }
+    }
+}

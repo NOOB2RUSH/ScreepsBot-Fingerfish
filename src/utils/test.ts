@@ -2,7 +2,6 @@
 
 
 
-let char = 'yang'
-let num = 123
-let res = char + (num - 1)
-console.log(res)
+let a = false
+let b = !a
+console.log(b);

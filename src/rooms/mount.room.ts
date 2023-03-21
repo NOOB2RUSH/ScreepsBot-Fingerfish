@@ -1,6 +1,6 @@
 import { ROLE_MIB, ROLE_UPGRADER, ROLE_BUILDER, ROLE_CARRIER, RETURNING, WORKING, ROLE_REPAIRER, creepConfig, MIB_CFG, creepCfgMap, ROLE_HARVESTER } from "creeps/creepConfiguration";
 
-import { body_resolve, my_some } from "utils/misc";
+import { my_some } from "utils/misc";
 /**定义不同建筑需求能量的优先级，1最高 */
 const energy_input_priority = {
     extension: 1,
@@ -45,6 +45,7 @@ export const roomExtention = {
 
     /**
      * 遍历该房间内所有creep并储存在内存里
+     * 如果是base，则也要计算隶属的mineshaft
      */
     find_creep(this: Room) {
         this.memory.creep_count = {
@@ -56,6 +57,17 @@ export const roomExtention = {
             harvester: 0,
         }
         let creep_list = this.find(FIND_MY_CREEPS)
+        if (this.memory.room_type === 'base') {
+            for (let i in Memory.baseList[this.name].linkedMineshaft) {
+                let mineshaft = Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name]
+                if (mineshaft) {
+                    let tempArr = mineshaft.find(FIND_MY_CREEPS)
+                    for (let j in tempArr) {
+                        creep_list.push(tempArr[j])
+                    }
+                }
+            }
+        }
         for (let i = 0; i < creep_list.length; i++) {
             switch (creep_list[i].memory.role) {
                 case ROLE_MIB:
@@ -133,21 +145,45 @@ export const roomExtention = {
             }
 
         }
+        /**删除无效的工地 */
+        for (let i in this.memory.list_construction) {
+            if (!Game.getObjectById(this.memory.list_construction[i].id)) {
+                this.memory.list_construction.splice(i as unknown as number, 1)
+            }
+        }
+
         /**对建筑列表按照优先级排序 */
-        this.memory.list_construction.sort((a, b) => a.priority - b.priority)
+        if (this.memory.list_construction) { this.memory.list_construction.sort((a, b) => a.priority - b.priority) }
 
 
 
     },
     /**遍历当前房间所有未被分配的建筑任务，将任务分配给builder */
     construct_job_giver(this: Room) {
-        let list_job = this.memory.list_construction
+        /**非base房不执行该函数 */
+        if (this.memory.room_type != 'base') {
+            return
+        }
 
+        let list_job = []
+        for (let i in this.memory.list_construction) {
+            list_job.push(this.memory.list_construction[i])
+        }
+
+        /**加入隶属于该base的外矿房间建筑任务 */
+        for (let i in Memory.baseList[this.name].linkedMineshaft) {
+            if (Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name]) {
+                if (Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name].memory.list_construction &&
+                    Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name].memory.list_construction.length > 0) {
+                    for (let j in Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name].memory.list_construction) {
+                        list_job.push(Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name].memory.list_construction[j])
+                    }
+                }
+            }
+        }
         for (let i in list_job) {
             //找到可用的建筑工地
-            if (Game.getObjectById(list_job[i].id) != null) {
-
-
+            if (Game.getObjectById(list_job[i].id)) {
                 for (let j in this.memory.creeps) {
                     let creep = Game.creeps[this.memory.creeps[j]]
                     if (creep) {
@@ -157,6 +193,7 @@ export const roomExtention = {
                                     break;
                                 case RETURNING:
                                     if (this.storage) {
+
                                         creep.withdraw_from(this.storage.id)
                                         break
                                     }
@@ -167,9 +204,6 @@ export const roomExtention = {
                     }
                 }
                 break;
-            }
-            else {
-                this.memory.list_construction.splice(i as unknown as number, 1)
             }
         }
     },
@@ -308,8 +342,7 @@ export const roomExtention = {
                 }
             }
         }
-
-        this.memory.list_energy_receiver.sort((a, b) => a.priority - b.priority)
+        if (this.memory.list_energy_receiver) { this.memory.list_energy_receiver.sort((a, b) => a.priority - b.priority) }
 
         //分配任务
         for (let name in this.memory.creeps) {
@@ -413,6 +446,9 @@ export const roomExtention = {
      * }
      */
     order_creep(this: Room) {
+        if (this.memory.room_type != 'base') {
+            return
+        }
         let cnt = 0
         for (let i in this.memory.list_source) {
             for (let j in this.memory.list_source[i].list_harvest_pos) {
@@ -468,8 +504,22 @@ export const roomExtention = {
                 total_list.MIB = 1000
                 break;
         }
-        /**判断是否生成builder */
-        if (!this.memory.list_construction || this.memory.list_construction.length == 0) {
+        /**判断是否生成builder
+         * 若base房间以及所有mineshaft房间都没有建筑需求，则不生成builder
+         */
+        let ifBuilder: boolean = false
+        if (this.memory.list_construction && this.memory.list_construction.length > 0) {
+            ifBuilder = true
+        }
+        for (let i in Memory.baseList[this.name].linkedMineshaft) {
+            if (Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name]) {
+                if (Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name].memory.list_construction &&
+                    Game.rooms[Memory.baseList[this.name].linkedMineshaft[i].name].memory.list_construction.length > 0) {
+                    ifBuilder = true
+                }
+            }
+        }
+        if (!ifBuilder) {
             total_list.builder = 1000
         }
         /**判断是否生成repairer */

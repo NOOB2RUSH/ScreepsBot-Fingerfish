@@ -36,6 +36,10 @@ export const towerExtention = {
             return
         }
         if (this.room.memory.hostileCreeps.length > 0) {
+            if (!Game.getObjectById(this.room.memory.hostileCreeps[0].id)) {
+                this.room.memory.hostileCreeps.splice(0, 1)
+                return
+            }
             let tar = Game.getObjectById(this.room.memory.hostileCreeps[0].id)
             if (tar) {
                 this.attack(tar)

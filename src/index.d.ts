@@ -3,12 +3,17 @@
 interface Memory {
     /**保存所有作为base的房间 */
     baseList: baseList
+    /**需要开视野的房间名数组 */
+    fogRooms: string[]
 }
 /**检索：base房间名：所拥有的外矿房间名 */
 interface baseList {
-
     [baseName: string]: {
-        linkedMineshaft: string[]
+        linkedMineshaft: {
+            name: string,
+            hasScout: boolean,
+            scoutName?: string,
+        }[]
     }
 }
 
@@ -41,6 +46,12 @@ interface Creep {
 }
 
 interface Room {
+    /**根据房间已经有的creep数量以及还缺少的数量进行下单
+     * 下单信息应该包含
+     * {role:
+     *
+     * }
+     */
     order_creep(): void
     find_creep(): void
     plan_container(): void
@@ -66,6 +77,9 @@ interface RoomMemory {
         /**格式类似 'builder' */
         role: string
         priority: number
+        opts?: {
+            scoutTarget: string
+        }
     }[]
     creep_count: {
         builder: number
@@ -135,6 +149,8 @@ interface CreepMemory {
     carry_target?: Id<Structure | Creep>
     /**carrier专属，记载当前任务类型（transfer/withdraw） */
     carry_type?: string
+    /**scout专属，记载侦察目的房间名 */
+    scout_target?: string
 }
 
 

@@ -8,6 +8,8 @@ import { auto_place_site, best_anchor, find_square, generate_room_cost_map, room
 import { roomDefence } from "defenceSystem/defenceMain";
 import { basename } from "path";
 import { memoize } from "lodash";
+import { headQuarter } from "overControl/HQ";
+import { adjustToLevel } from "rooms/ageEvo";
 
 
 
@@ -27,11 +29,16 @@ export const loop = ErrorMapper.wrapLoop(() => {
   memoryUnleasher()
 
   //入口
+  headQuarter.earlyWarning();
+
+
+
   /**房间总数 */
   let roomCnt = 0
   for (let n in Game.rooms) {
     roomCnt++
   }
+  /**对每个房间进行操作 */
   for (var n in Game.rooms) {
     let room = Game.rooms[n]
     if (roomCnt == 1) { room_Init(room, 'base') }
@@ -45,7 +52,7 @@ export const loop = ErrorMapper.wrapLoop(() => {
     if (Game.time % 10 == 0) {
       room.construct_job_finder()
     }
-    if (Game.time % 1000 == 0) {
+    if (Game.time % 1000 == 0 && room.memory.room_type === 'base') {
       auto_place_site(room)
     }
     /**工作发布 */
@@ -59,9 +66,17 @@ export const loop = ErrorMapper.wrapLoop(() => {
     for (let tower of towers) {
       tower.run()
     }
-  }
-  //spawnController(Game.spawns['Spawn1'])
-  runCreepEveryTick()
 
+
+    if (room.controller.level >= 4 && room.memory.room_type == 'base') {
+      headQuarter.findMineshaft(room)
+    }
+
+    adjustToLevel(room)
+  }
+
+
+  runCreepEveryTick()
+  headQuarter.scoutCommander()
 
 });

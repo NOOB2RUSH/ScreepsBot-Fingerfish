@@ -1,4 +1,7 @@
 //根据房间情况判断‘时代’，采取不同的creep孵化策略和不同的建筑学
+
+import { CARRIER_CFG, creepCfgMap, creepConfig } from "creeps/creepConfiguration"
+
 /**1阶段，只生成MIB和upgrader */
 const PRIMITIVE_AGE = 500
 
@@ -28,10 +31,11 @@ export const age_config = {
 }
 
 
-/**根据房间现状判断所处的时代
- * 时代进步每次最多进步一级
+/**根据房间等级调整部分设置
+ *
  */
-export function age_assessment(room: Room) {
-    let current_age = room.memory.current_age
-
+export function adjustToLevel(room: Room) {
+    if (room.controller.level >= 4) {
+        creepConfig[CARRIER_CFG].max_count = 3
+    }
 }
